@@ -353,7 +353,6 @@
             display: none;
         }
 
-        /* Pulsante "Carica altri contenuti" a blocchi di 50 (stile verde smeraldo con glow) */
         .load-more-container {
             display: none;
             justify-content: center;
@@ -392,7 +391,6 @@
             letter-spacing: 0.6px;
         }
 
-        /* Pulsante fisso "Torna su" in alto a destra (stile verde smeraldo con glow) */
         .scroll-top-btn {
             position: fixed;
             top: 22px;
@@ -480,7 +478,6 @@
             align-items: center;
         }
 
-        /* Modali in sovrimpressione per Chi sono, Attrezzatura e Contattami */
         .modal {
             display: none;
             position: fixed;
@@ -715,6 +712,11 @@
                 font-size: 1.35rem;
                 margin-bottom: 12px;
             }
+            .scopri-item-link {
+                padding: 5px 8px !important;
+                line-height: 1.25 !important;
+                font-size: 0.76rem !important;
+            }
             .load-more-btn {
                 padding: 10px 22px;
                 font-size: 0.78rem;
@@ -817,6 +819,8 @@
 
         <div class="divider-line"></div>
     </header>
+
+    <div id="scopri-bar-root" data-lang="it" data-index-url="https://scattiaspasso.github.io/scattiaspasso/storie.html"></div>
 
     <section class="story-header-box">
         <div class="story-top-meta">
@@ -1219,6 +1223,7 @@
             .then(renderStory)
             .catch(err => console.error('Errore caricamento storia:', err));
     </script>
+    <script src="https://scattiaspasso.github.io/scattiaspasso/Scopri.js" defer></script>
 
 </body>
 </html>
