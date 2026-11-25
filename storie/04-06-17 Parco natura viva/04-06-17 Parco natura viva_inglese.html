@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parco Natura viva — Scatti a Spasso</title>
+<title>Parco natura viva — Scatti a Spasso</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -167,18 +167,6 @@
     box-shadow: 0 0 16px rgba(52, 211, 153, 0.35);
   }
 
-  .local-bar {
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
   .local-controls {
     display: flex;
     flex-wrap: wrap;
@@ -345,22 +333,21 @@
       <div class="diary-hero-top">
         <div>
           <div class="diary-date" id="diaryDate">June 4, 2017</div>
-          <h1 class="diary-title" id="diaryTitle">Parco Natura viva</h1>
+          <h1 class="diary-title" id="diaryTitle">Parco natura viva</h1>
           <p class="diary-subtitle" id="diarySubtitle">A short report of a day at Parco Natura Viva</p>
         </div>
-        <a href="../../storie_inglese.html" class="back-diaries-btn">← DIARIES</a>
-      </div>
-      <div class="local-bar">
-        <div>Automatically loads <code>04-06-17 Parco natura viva_inglese.json</code>.</div>
-        <div class="local-controls">
-          <label class="btn-ui">
-            Load local JSON
-            <input type="file" id="jsonPicker" accept=".json,application/json">
-          </label>
-          <label class="btn-ui">
-            Link local photos
-            <input type="file" id="photoPicker" accept="image/*" multiple>
-          </label>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+          <a href="../../storie_inglese.html" class="back-diaries-btn">← DIARIES</a>
+          <div class="local-controls">
+            <label class="btn-ui">
+              Load local JSON
+              <input type="file" id="jsonPicker" accept=".json,application/json">
+            </label>
+            <label class="btn-ui">
+              Link local photos
+              <input type="file" id="photoPicker" accept="image/*" multiple>
+            </label>
+          </div>
         </div>
       </div>
     </section>
@@ -391,7 +378,7 @@
 
   const localPhotoUrls = new Map();
   let currentData = {
-    titolo: "Parco Natura viva",
+    titolo: "Parco natura viva",
     data: "June 4, 2017",
     sottotitolo: "A short report of a day at Parco Natura Viva",
     foto: []
