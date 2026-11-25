@@ -1263,7 +1263,7 @@
                             <div class="story-note-header">
                                 <button type="button" class="story-note-close" aria-label="Chiudi nota" title="Chiudi nota" onclick="togglePhotoNote(event, ${idx})">&times;</button>
                             </div>
-                            <div>${escapeHtml(noteText).replace(/\n/g, '<br>')}</div>
+                            <div>${noteText.replace(/\n/g, '<br>')}</div>
                        </div>`
                     : '';
 
