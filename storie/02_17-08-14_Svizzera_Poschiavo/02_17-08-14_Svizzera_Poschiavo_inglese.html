@@ -330,6 +330,11 @@
         .story-photo-card:hover {
             border-color: rgba(52, 211, 153, 0.65);
         }
+        .story-photo-media {
+            position: relative;
+            width: 100%;
+            background-color: #090909;
+        }
         .story-photo-card img {
             width: 100%;
             height: auto;
@@ -342,6 +347,82 @@
             user-select: none;
             -webkit-touch-callout: none;
         }
+
+        /* Bolla d'aria SVG in basso a destra sulla foto */
+        .bubble-btn {
+            position: absolute;
+            right: 14px;
+            bottom: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 12;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.22s ease, filter 0.22s ease;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
+        }
+        .bubble-btn:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 6px 16px rgba(110, 231, 183, 0.45));
+        }
+        .bubble-btn:active {
+            transform: scale(0.96);
+        }
+        .bubble-btn.is-open svg {
+            transform: rotate(90deg);
+        }
+        .bubble-btn svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            transition: transform 0.25s ease;
+        }
+
+        /* Box racconto appena sotto la foto */
+        .story-note-box {
+            display: none;
+            padding: 13px 16px;
+            background: linear-gradient(180deg, rgba(16, 26, 21, 0.98), rgba(12, 18, 15, 0.98));
+            border-top: 1px solid rgba(52, 211, 153, 0.28);
+            color: #d6e4de;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            cursor: default;
+        }
+        .story-note-box.open {
+            display: block;
+            animation: noteFadeIn 0.2s ease;
+        }
+        .story-note-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 4px;
+        }
+        .story-note-close {
+            background: transparent;
+            border: none;
+            color: #88a095;
+            font-size: 1.15rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 2px;
+            transition: color 0.2s ease;
+        }
+        .story-note-close:hover {
+            color: #ffffff;
+        }
+        @keyframes noteFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .story-photo-caption {
             padding: 10px 16px;
             font-size: 0.88rem;
@@ -708,6 +789,12 @@
             }
             .story-photo-card {
                 border-radius: 16px;
+            }
+            .bubble-btn {
+                width: 46px;
+                height: 46px;
+                right: 12px;
+                bottom: 12px;
             }
             .section-label {
                 font-size: 1.3rem;
@@ -1098,6 +1185,53 @@
             }
         });
 
+        function createBubbleSvg(uid) {
+            return `
+                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <radialGradient id="b-fill-${uid}" cx="35%" cy="28%" r="68%">
+                            <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.34"/>
+                            <stop offset="45%" stop-color="#a7f3d0" stop-opacity="0.14"/>
+                            <stop offset="82%" stop-color="#e9d5ff" stop-opacity="0.22"/>
+                            <stop offset="100%" stop-color="#93c5fd" stop-opacity="0.36"/>
+                        </radialGradient>
+                        <linearGradient id="b-rim-${uid}" x1="12%" y1="8%" x2="88%" y2="92%">
+                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                            <stop offset="28%" stop-color="#7dd3fc" stop-opacity="0.75"/>
+                            <stop offset="62%" stop-color="#f0abfc" stop-opacity="0.72"/>
+                            <stop offset="85%" stop-color="#fde68a" stop-opacity="0.75"/>
+                            <stop offset="100%" stop-color="#6ee7b7" stop-opacity="0.9"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="32" cy="32" r="28.5" fill="url(#b-fill-${uid})" stroke="url(#b-rim-${uid})" stroke-width="2.2"/>
+                    <path d="M13 24 A21 21 0 0 1 38 11.5" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.78"/>
+                    <path d="M16 45 A22 22 0 0 0 49 41" fill="none" stroke="#c4b5fd" stroke-width="2.4" stroke-linecap="round" opacity="0.65"/>
+                    <ellipse cx="42" cy="52.5" rx="4.2" ry="2.2" transform="rotate(-14 42 52.5)" fill="#ffffff" opacity="0.92"/>
+                </svg>
+            `;
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function togglePhotoNote(event, idx) {
+            event.stopPropagation();
+            const noteBox = document.getElementById(`story-note-${idx}`);
+            const bubbleBtn = document.getElementById(`bubble-btn-${idx}`);
+            if (!noteBox) return;
+            const willOpen = !noteBox.classList.contains('open');
+            noteBox.classList.toggle('open', willOpen);
+            if (bubbleBtn) {
+                bubbleBtn.classList.toggle('is-open', willOpen);
+                bubbleBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            }
+        }
+
         function renderStoryPhotosBatch() {
             const grid = document.getElementById('story-grid');
             const loadMoreContainer = document.getElementById('load-more-container');
@@ -1111,11 +1245,32 @@
 
             sliceToShow.forEach((item, idx) => {
                 const safeCap = (item.didascalia || '').replace(/"/g, '&quot;');
+                const noteText = (item.nota ?? item.racconto ?? '').toString().trim();
+                const hasNote = noteText.length > 0;
+
                 const card = document.createElement('div');
                 card.className = 'story-photo-card';
                 card.onclick = () => openLightbox(idx);
+
+                const bubbleHtml = hasNote
+                    ? `<button type="button" id="bubble-btn-${idx}" class="bubble-btn" aria-label="Open note" title="Open note" aria-expanded="false" onclick="togglePhotoNote(event, ${idx})">${createBubbleSvg(idx)}</button>`
+                    : '';
+
+                const noteBoxHtml = hasNote
+                    ? `<div id="story-note-${idx}" class="story-note-box" onclick="event.stopPropagation()">
+                            <div class="story-note-header">
+                                <button type="button" class="story-note-close" aria-label="Close note" title="Close note" onclick="togglePhotoNote(event, ${idx})">&times;</button>
+                            </div>
+                            <div>${escapeHtml(noteText).replace(/\n/g, '<br>')}</div>
+                       </div>`
+                    : '';
+
                 card.innerHTML = `
-                    <img src="${item.file}" alt="${safeCap || item.file}" loading="lazy" oncontextmenu="return false;">
+                    <div class="story-photo-media">
+                        <img src="${item.file}" alt="${safeCap || item.file}" loading="lazy" oncontextmenu="return false;">
+                        ${bubbleHtml}
+                    </div>
+                    ${noteBoxHtml}
                     <div class="story-photo-caption">${item.didascalia || ''}</div>
                 `;
                 grid.appendChild(card);
