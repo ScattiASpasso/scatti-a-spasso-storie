@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parco Natura Viva</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --surface: #161b22;
+    --surface-2: #1f2630;
+    --border: #2c3543;
+    --text: #eef2f6;
+    --muted: #9aa5b4;
+    --accent: #58a6ff;
+    --accent-soft: rgba(88, 166, 255, 0.16);
+    --bubble-bg: rgba(16, 21, 29, 0.94);
+    --bubble-border: rgba(255, 255, 255, 0.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .page-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 72px; }
+  .diary-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 26px;
+    margin-bottom: 24px;
+  }
+  .diary-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .diary-title { margin: 0 0 8px; font-size: clamp(1.6rem, 3.2vw, 2.35rem); line-height: 1.18; }
+  .diary-subtitle { margin: 0; color: var(--muted); font-size: 1.05rem; }
+  .local-bar {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .local-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn-ui {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-ui:hover { border-color: var(--accent); }
+  input[type="file"] { display: none; }
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 18px;
+  }
+  .photo-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .photo-frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #0b0d11;
+    overflow: hidden;
+  }
+  .photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bubble-btn {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 12;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.22s ease, filter 0.22s ease;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.92)) drop-shadow(0 5px 12px rgba(0, 0, 0, 0.8));
+  }
+  .bubble-btn:hover svg {
+    transform: rotate(45deg) scale(1.05);
+    filter: drop-shadow(0 6px 16px rgba(110, 231, 183, 0.45));
+  }
+  .bubble-btn:active { transform: scale(0.96); }
+  .bubble-btn.is-open svg { transform: rotate(180deg); }
+  .bubble-btn svg { width: 100%; height: 100%; display: block; transition: transform 0.25s ease; }
+  @media (max-width: 600px) {
+    .bubble-btn { width: 46px; height: 46px; right: 12px; bottom: 12px; }
+  }
+  .note-popover {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 66px;
+    background: var(--bubble-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--bubble-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    color: var(--text);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+    z-index: 15;
+    display: none;
+  }
+  .note-popover.open { display: block; }
+  .note-popover a { color: #7dd3fc; text-decoration: underline; }
+  .note-close {
+    margin-top: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 0.76rem;
+    cursor: pointer;
+  }
+  .status-banner {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    font-size: 0.86rem;
+    color: #d6e9ff;
+    display: none;
+  }
+  .status-banner.show { display: block; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <header class="diary-header">
+    <div class="diary-date" id="diaryDate">June 4, 2017</div>
+    <h1 class="diary-title" id="diaryTitle">Parco Natura Viva</h1>
+    <p class="diary-subtitle" id="diarySubtitle">A short report of a day at Parco Natura Viva</p>
+    <div class="local-bar">
+      <div>Automatically loads <code>04-06-17 Parco natura viva_inglese.json</code>.</div>
+      <div class="local-controls">
+        <label class="btn-ui">
+          Load local JSON
+          <input type="file" id="jsonPicker" accept=".json,application/json">
+        </label>
+        <label class="btn-ui">
+          Link local photos
+          <input type="file" id="photoPicker" accept="image/*" multiple>
+        </label>
+      </div>
+    </div>
+  </header>
+  <div class="status-banner" id="statusBanner"></div>
+  <main class="gallery" id="gallery"></main>
+</div>
+
+<script>
+(() => {
+  const JSON_URL = "04-06-17 Parco natura viva_inglese.json";
+  const CLOSE_TEXT = "Close";
+  const IS_IT = false;
+
+  const els = {
+    diaryDate: document.getElementById("diaryDate"),
+    diaryTitle: document.getElementById("diaryTitle"),
+    diarySubtitle: document.getElementById("diarySubtitle"),
+    gallery: document.getElementById("gallery"),
+    statusBanner: document.getElementById("statusBanner"),
+    jsonPicker: document.getElementById("jsonPicker"),
+    photoPicker: document.getElementById("photoPicker")
+  };
+
+  const localPhotoUrls = new Map();
+  let currentData = {
+    titolo: "Parco Natura Viva",
+    data: "June 4, 2017",
+    sottotitolo: "A short report of a day at Parco Natura Viva",
+    foto: []
+  };
+
+  function showStatus(msg) {
+    els.statusBanner.textContent = msg;
+    els.statusBanner.classList.add("show");
+  }
+
+  function escapeHtmlAttr(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function bubbleSvg() {
+    return `
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="rgba(17, 24, 39, 0.72)" stroke="#6ee7b7" stroke-width="2.2"/>
+        <circle cx="24" cy="24" r="14" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <circle cx="24" cy="17" r="2.2" fill="#6ee7b7"/>
+        <rect x="22.5" y="21.5" width="3" height="10" rx="1.5" fill="#ffffff"/>
+      </svg>`;
+  }
+
+  function resolveImageSrc(filename) {
+    return localPhotoUrls.has(filename) ? localPhotoUrls.get(filename) : filename;
+  }
+
+  function renderGallery() {
+    els.diaryTitle.textContent = currentData.titolo || "";
+    els.diaryDate.textContent = currentData.data || "";
+    els.diarySubtitle.textContent = currentData.sottotitolo || "";
+
+    const photos = Array.isArray(currentData.foto) ? currentData.foto : [];
+    els.gallery.innerHTML = "";
+
+    if (photos.length === 0) {
+      els.gallery.innerHTML = `
+        <div class="diary-header" style="grid-column: 1 / -1; text-align:center; color:var(--muted);">
+          ${IS_IT
+            ? "Nessuna foto nel JSON o apertura locale: usa «Carica JSON locale» e «Collega cartella foto»."
+            : "No photos in JSON or local mode: use «Load local JSON» and «Link local photos»."}
+        </div>`;
+      return;
+    }
+
+    photos.forEach((item, idx) => {
+      const file = item.file || "";
+      const note = typeof item.nota === "string" ? item.nota.trim() : "";
+      const hasNote = note.length > 0;
+      const src = resolveImageSrc(file);
+
+      const card = document.createElement("article");
+      card.className = "photo-card";
+      card.innerHTML = `
+        <div class="photo-frame">
+          <img src="${escapeHtmlAttr(src)}" alt="${escapeHtmlAttr(file)}" loading="lazy">
+          ${hasNote ? `
+            <button type="button" class="bubble-btn" aria-expanded="false" aria-label="${IS_IT ? "Apri nota" : "Open note"}" data-note-idx="${idx}">
+              ${bubbleSvg()}
+            </button>
+            <div class="note-popover" id="popover-${idx}" role="region">
+              <div>${note}</div>
+              <button type="button" class="note-close" data-close-idx="${idx}">${CLOSE_TEXT}</button>
+            </div>
+          ` : ""}
+        </div>
+      `;
+      els.gallery.appendChild(card);
+    });
+  }
+
+  els.gallery.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-note-idx]");
+    if (btn) {
+      const idx = btn.dataset.noteIdx;
+      const pop = document.getElementById(`popover-${idx}`);
+      if (!pop) return;
+      const isOpen = pop.classList.contains("open");
+      document.querySelectorAll(".note-popover.open").forEach(p => p.classList.remove("open"));
+      document.querySelectorAll(".bubble-btn.is-open").forEach(b => {
+        b.classList.remove("is-open");
+        b.setAttribute("aria-expanded", "false");
+      });
+      if (!isOpen) {
+        pop.classList.add("open");
+        btn.classList.add("is-open");
+        btn.setAttribute("aria-expanded", "true");
+      }
+      return;
+    }
+
+    const closeBtn = e.target.closest("button[data-close-idx]");
+    if (closeBtn) {
+      const idx = closeBtn.dataset.closeIdx;
+      const pop = document.getElementById(`popover-${idx}`);
+      const btn = els.gallery.querySelector(`button[data-note-idx="${idx}"]`);
+      if (pop) pop.classList.remove("open");
+      if (btn) {
+        btn.classList.remove("is-open");
+        btn.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
+
+  els.jsonPicker.addEventListener("change", async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      currentData = JSON.parse(await file.text());
+      renderGallery();
+      showStatus(IS_IT ? `Caricato: ${file.name}` : `Loaded: ${file.name}`);
+    } catch (err) {
+      showStatus((IS_IT ? "Errore JSON: " : "JSON error: ") + err.message);
+    }
+    e.target.value = "";
+  });
+
+  els.photoPicker.addEventListener("change", e => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    localPhotoUrls.forEach(u => URL.revokeObjectURL(u));
+    localPhotoUrls.clear();
+    files.forEach(f => localPhotoUrls.set(f.name, URL.createObjectURL(f)));
+    renderGallery();
+    showStatus(IS_IT ? `Collegate ${files.length} foto locali` : `Linked ${files.length} local photos`);
+    e.target.value = "";
+  });
+
+  async function tryAutoLoadJson() {
+    if (window.location.protocol === "file:") {
+      showStatus(IS_IT
+        ? "Apertura locale (file://): usa «Carica JSON locale» e «Collega cartella foto»."
+        : "Local mode (file://): use «Load local JSON» and «Link local photos».");
+      renderGallery();
+      return;
+    }
+    try {
+      const resp = await fetch(encodeURI(JSON_URL), { cache: "no-store" });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      currentData = await resp.json();
+      renderGallery();
+    } catch (_) {
+      renderGallery();
+    }
+  }
+
+  tryAutoLoadJson();
+})();
+</script>
+</body>
+</html>
