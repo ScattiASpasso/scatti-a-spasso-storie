@@ -167,41 +167,6 @@
     box-shadow: 0 0 16px rgba(52, 211, 153, 0.35);
   }
 
-  .local-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .btn-ui {
-    background: var(--surface-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 11px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color 0.2s ease, color 0.2s ease;
-  }
-  .btn-ui:hover {
-    border-color: var(--accent-bright);
-    color: #ffffff;
-  }
-  input[type="file"] { display: none; }
-
-  .status-banner {
-    margin-bottom: 18px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: rgba(52, 211, 153, 0.1);
-    border: 1px solid rgba(52, 211, 153, 0.35);
-    font-size: 0.84rem;
-    color: #d1fae5;
-    display: none;
-  }
-  .status-banner.show { display: block; }
-
   .diary-stream {
     display: flex;
     flex-direction: column;
@@ -336,23 +301,10 @@
           <h1 class="diary-title" id="diaryTitle">Parco natura viva</h1>
           <p class="diary-subtitle" id="diarySubtitle">A short report of a day at Parco Natura Viva</p>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
-          <a href="../../storie_inglese.html" class="back-diaries-btn">← DIARIES</a>
-          <div class="local-controls">
-            <label class="btn-ui">
-              Load local JSON
-              <input type="file" id="jsonPicker" accept=".json,application/json">
-            </label>
-            <label class="btn-ui">
-              Link local photos
-              <input type="file" id="photoPicker" accept="image/*" multiple>
-            </label>
-          </div>
-        </div>
+        <a href="../../storie_inglese.html" class="back-diaries-btn">← DIARIES</a>
       </div>
     </section>
 
-    <div class="status-banner" id="statusBanner"></div>
     <main class="diary-stream" id="gallery"></main>
   </div>
 
@@ -364,30 +316,20 @@
 (() => {
   const JSON_URL = "04-06-17 Parco natura viva_inglese.json";
   const CLOSE_TEXT = "Close";
-  const IS_IT = false;
 
   const els = {
     diaryDate: document.getElementById("diaryDate"),
     diaryTitle: document.getElementById("diaryTitle"),
     diarySubtitle: document.getElementById("diarySubtitle"),
-    gallery: document.getElementById("gallery"),
-    statusBanner: document.getElementById("statusBanner"),
-    jsonPicker: document.getElementById("jsonPicker"),
-    photoPicker: document.getElementById("photoPicker")
+    gallery: document.getElementById("gallery")
   };
 
-  const localPhotoUrls = new Map();
   let currentData = {
     titolo: "Parco natura viva",
     data: "June 4, 2017",
     sottotitolo: "A short report of a day at Parco Natura Viva",
     foto: []
   };
-
-  function showStatus(msg) {
-    els.statusBanner.textContent = msg;
-    els.statusBanner.classList.add("show");
-  }
 
   function escapeHtmlAttr(str) {
     return String(str || "")
@@ -407,10 +349,6 @@
       </svg>`;
   }
 
-  function resolveImageSrc(filename) {
-    return localPhotoUrls.has(filename) ? localPhotoUrls.get(filename) : filename;
-  }
-
   function renderGallery() {
     els.diaryTitle.textContent = currentData.titolo || "";
     els.diaryDate.textContent = currentData.data || "";
@@ -419,29 +357,18 @@
     const photos = Array.isArray(currentData.foto) ? currentData.foto : [];
     els.gallery.innerHTML = "";
 
-    if (photos.length === 0) {
-      els.gallery.innerHTML = `
-        <div class="diary-hero" style="text-align:center; color:var(--muted);">
-          ${IS_IT
-            ? "Nessuna foto nel JSON o apertura locale: usa «Carica JSON locale» e «Collega cartella foto»."
-            : "No photos in JSON or local mode: use «Load local JSON» and «Link local photos»."}
-        </div>`;
-      return;
-    }
-
     photos.forEach((item, idx) => {
       const file = item.file || "";
       const note = typeof item.nota === "string" ? item.nota.trim() : "";
       const hasNote = note.length > 0;
-      const src = resolveImageSrc(file);
 
       const card = document.createElement("article");
       card.className = "photo-card";
       card.innerHTML = `
         <div class="photo-frame">
-          <img src="${escapeHtmlAttr(src)}" alt="${escapeHtmlAttr(file)}" loading="lazy">
+          <img src="${escapeHtmlAttr(file)}" alt="${escapeHtmlAttr(file)}" loading="lazy">
           ${hasNote ? `
-            <button type="button" class="bubble-btn" aria-expanded="false" aria-label="${IS_IT ? "Apri nota" : "Open note"}" data-note-idx="${idx}">
+            <button type="button" class="bubble-btn" aria-expanded="false" aria-label="Note" data-note-idx="${idx}">
               ${bubbleSvg()}
             </button>
           ` : ""}
@@ -490,38 +417,7 @@
     }
   });
 
-  els.jsonPicker.addEventListener("change", async e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      currentData = JSON.parse(await file.text());
-      renderGallery();
-      showStatus(IS_IT ? `Caricato: ${file.name}` : `Loaded: ${file.name}`);
-    } catch (err) {
-      showStatus((IS_IT ? "Errore JSON: " : "JSON error: ") + err.message);
-    }
-    e.target.value = "";
-  });
-
-  els.photoPicker.addEventListener("change", e => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    localPhotoUrls.forEach(u => URL.revokeObjectURL(u));
-    localPhotoUrls.clear();
-    files.forEach(f => localPhotoUrls.set(f.name, URL.createObjectURL(f)));
-    renderGallery();
-    showStatus(IS_IT ? `Collegate ${files.length} foto locali` : `Linked ${files.length} local photos`);
-    e.target.value = "";
-  });
-
   async function tryAutoLoadJson() {
-    if (window.location.protocol === "file:") {
-      showStatus(IS_IT
-        ? "Apertura locale (file://): usa «Carica JSON locale» e «Collega cartella foto»."
-        : "Local mode (file://): use «Load local JSON» and «Link local photos».");
-      renderGallery();
-      return;
-    }
     try {
       const resp = await fetch(encodeURI(JSON_URL), { cache: "no-store" });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
